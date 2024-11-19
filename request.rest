@@ -36,15 +36,16 @@ POST http://localhost:3000/comments
 Content-Type: application/json
 
 {
-  "postId": "64f1d9f8a9e7345b2c3e8c91", 
-  "content": "This is my first comment!"
+  "postId": "673d1324a98644da2edaeac0", 
+  "content": "This is my first comment!", 
+  "author" : "a"
 }
 
 ###
 
-### 2. Get all comments
+### 2. Get all comments by id of post
 # This request retrieves all comments from the database.
-GET http://localhost:3000/comments
+GET http://localhost:3000/comments/673d1324a98644da2edaeac0
 
 ###
 
@@ -57,7 +58,7 @@ GET http://localhost:3000/comments/post/64f1d9f8a9e7345b2c3e8c91
 ### 4. Update a comment
 # This request updates an existing comment by its ID. 
 # Make sure to replace <comment_id> with the actual ID of the comment.
-PUT http://localhost:3000/comments/<comment_id>
+PUT http://localhost:3000/comments/673d14f919604969c1ea55c2
 Content-Type: application/json
 
 {
@@ -69,4 +70,4 @@ Content-Type: application/json
 ### 5. Delete a comment
 # This request deletes a specific comment by its ID. 
 # Replace <comment_id> with the actual ID of the comment.
-DELETE http://localhost:3000/comments/<comment_id>
+DELETE http://localhost:3000/comments/673d14f919604969c1ea55c2

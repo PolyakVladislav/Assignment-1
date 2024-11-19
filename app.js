@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const app = express();
 const postsRoutes = require("./routes/posts");
+const commentsRoutes = require("./routes/comments");
 const port = process.env.PORT;
 
 app.use(bodyParser.json());
@@ -18,6 +19,9 @@ db.once("open", function () {
 
 
 app.use("/posts", postsRoutes);
+
+app.use("/comments", commentsRoutes);
+
 
 app.listen(port, () => {
   console.log(`The server is listening on port ${port}`);
