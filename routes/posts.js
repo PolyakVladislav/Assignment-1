@@ -75,3 +75,4 @@ router.put("/:id", async (req, res) => {
     res.json({ message: "Error update", error: err.message });
   }
 });
+module.exports = router;

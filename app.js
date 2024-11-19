@@ -4,7 +4,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const app = express();
-
+const postsRoutes = require("./routes/posts");
 const port = process.env.PORT;
 
 app.use(bodyParser.json());
@@ -16,7 +16,6 @@ db.once("open", function () {
   console.log("Connected to database");
 });
 
-const postsRoutes = require("./routes/posts");
 
 app.use("/posts", postsRoutes);
 
