@@ -9,7 +9,7 @@ const port = process.env.PORT ;
 
 app.use(bodyParser.json());
 
-mongoose.connect("mongodb+srv://dormatana101:Dormatana054@postcomments.berhw.mongodb.net/?retryWrites=true&w=majority&appName=PostComments");
+mongoose.connect(process.env.DB_CONNECT);
 const db = mongoose.connection; 
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function() {
