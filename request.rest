@@ -1,7 +1,6 @@
-### add new post
 
-
-
+// --------- POSTS -----------
+### 1. add new post 1
 POST http://localhost:3000/posts
 Content-Type: application/json
 
@@ -11,17 +10,47 @@ Content-Type: application/json
   "senderId": "user123"
 }
 
-### get all posts
+
+### 2. add new post 2 
+POST http://localhost:3000/posts
+Content-Type: application/json
+
+{
+  "title": "My Second Post",
+  "content": "This is the content of my second post.",
+  "senderId": "user123"
+}
+
+
+### 3. add new post 3
+POST http://localhost:3000/posts
+Content-Type: application/json
+
+{
+  "title": "New user post",
+  "content": "This is the content of new user post.",
+  "senderId": "User456"
+}
+
+
+### 4. get all posts
 GET http://localhost:3000/posts
 
-### get post by id
-GET http://localhost:3000/posts/673d11e2053a5f3b2dfbc6b8
 
-### get post by sender
+### 5. get post by id
+GET http://localhost:3000/posts/ <ID POST!!!>
+
+
+### 6. get post by first sender
 GET http://localhost:3000/posts/sender/user123
 
-### update post
-PUT http://localhost:3000/posts/673d11e2053a5f3b2dfbc6b8
+
+### 7. get post by second sender
+GET http://localhost:3000/posts/sender/user456
+
+
+### 8. update post
+PUT http://localhost:3000/posts/<ID POST!!!>
 Content-Type: application/json
 
 {
@@ -30,8 +59,8 @@ Content-Type: application/json
 }
 
 
+// --------- COMMENTS -----------
 ### 1. Add a new comment
-# This request creates a new comment associated with a specific post.
 POST http://localhost:3000/comments
 Content-Type: application/json
 
@@ -41,33 +70,23 @@ Content-Type: application/json
   "author" : "a"
 }
 
-###
 
 ### 2. Get all comments by id of post
-# This request retrieves all comments from the database.
-GET http://localhost:3000/comments/673d1324a98644da2edaeac0
+GET http://localhost:3000/comments/<ID POST!!!>
 
-###
 
 ### 3. Get comments for a specific post
-# This request retrieves all comments associated with a specific post by its ID.
-GET http://localhost:3000/comments/post/64f1d9f8a9e7345b2c3e8c91
+GET http://localhost:3000/comments/post/<ID POST!!!>
 
-###
 
 ### 4. Update a comment
-# This request updates an existing comment by its ID. 
-# Make sure to replace <comment_id> with the actual ID of the comment.
-PUT http://localhost:3000/comments/673d14f919604969c1ea55c2
+PUT http://localhost:3000/comments/<ID COMMENT!!!>
 Content-Type: application/json
 
 {
   "content": "Updated comment content!"
 }
 
-###
 
 ### 5. Delete a comment
-# This request deletes a specific comment by its ID. 
-# Replace <comment_id> with the actual ID of the comment.
-DELETE http://localhost:3000/comments/673d14f919604969c1ea55c2
+DELETE http://localhost:3000/comments/<ID COMMENT!!!>
