@@ -2,77 +2,87 @@ const express = require("express");
 const router = express.Router();
 const Post = require("../models/Post");
 
-// new post
+// Create a new post
 router.post("/", async (req, res) => {
   try {
     const { title, content, senderId } = req.body;
 
+    if (!title || !content || !senderId) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
     const post = new Post({ title, content, senderId });
     await post.save();
-    res.json(post);
+    res.status(201).json(post);
   } catch (err) {
-    res.json({ message: "Error creating post", error: err.message });
+    res.status(500).json({ message: "Error creating post", error: err.message });
   }
 });
 
-// get all posts
+// Get all posts
 router.get("/", async (req, res) => {
   try {
     const posts = await Post.find();
-    res.json(posts);
+    res.status(200).json(posts);
   } catch (err) {
-    res.json({ message: "Error getting all posts", error: err.message });
+    res.status(500).json({ message: "Error getting all posts", error: err.message });
   }
 });
 
-// get post by id
+// Get a post by ID
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const post = await Post.findById(id);
 
     if (!post) {
-      res.status({ message: "Post not found" });
+      return res.status(404).json({ message: "Post not found" });
     }
 
-    res.json(post);
+    res.status(200).json(post);
   } catch (err) {
-    res.json({ message: "Id not existed", error: err.message });
+    res.status(500).json({ message: "Error getting post by ID", error: err.message });
   }
 });
 
-// get post by sender id
+// Get posts by sender ID
 router.get("/sender/:senderId", async (req, res) => {
   try {
     const posts = await Post.find({ senderId: req.params.senderId });
 
     if (!posts.length) {
-      res.status({ message: "Mo posts by this sender" });
+      return res.status(404).json({ message: "No posts found for this sender" });
     }
-    res.json(posts);
+
+    res.status(200).json(posts);
   } catch (err) {
-    res.json({
-      message: "Error getting posts by this sender",
-      error: err.message,
-    });
+    res.status(500).json({ message: "Error getting posts by sender ID", error: err.message });
   }
 });
 
-// update post
+// Update a post
 router.put("/:id", async (req, res) => {
   try {
     const { title, content } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({ message: "Title and content are required" });
+    }
+
     const updatedPost = await Post.findByIdAndUpdate(
       req.params.id,
       { title, content },
       { new: true }
     );
+
     if (!updatedPost) {
-      return res.status({ message: "Post not found" });
+      return res.status(404).json({ message: "Post not found" });
     }
-    res.json(updatedPost);
+
+    res.status(200).json(updatedPost);
   } catch (err) {
-    res.json({ message: "Error update", error: err.message });
+    res.status(500).json({ message: "Error updating post", error: err.message });
   }
 });
+
 module.exports = router;
