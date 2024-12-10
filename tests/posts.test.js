@@ -1,18 +1,21 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
-const app = require('../server');
+const initApp = require('../server');
 const postModel = require('../models/Post');
 const commectModel = require('../models/Comment');
 
+let app; 
+
 beforeAll(async () => {
-    console.log('beforeAll');
-    await postModel.deleteMany();
-    await commectModel.deleteMany();
+  console.log('beforeAll');
+  app = await initApp();
+  await postModel.deleteMany();
+  await commectModel.deleteMany();
 });
 
 afterAll(async () => {
-    console.log('afterAll');
-    await mongoose.connection.close();
+  console.log('afterAll');
+  await mongoose.connection.close();
 });
 
 describe('Posts and Comments test suite', () => {
