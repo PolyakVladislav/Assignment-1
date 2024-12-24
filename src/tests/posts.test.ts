@@ -1,8 +1,8 @@
 import request from "supertest";
 import mongoose from "mongoose";
-import initApp from "../src/server";
-import postModel from "../src/models/Post";
-import commentModel from "../src/models/Comment";
+import initApp from "../server";
+import postModel from "../models/Post";
+import commentModel from "../models/Comment";
 import { Express } from "express";
 let app: Express;
 
