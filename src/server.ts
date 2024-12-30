@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import bodyParser from "body-parser";
 import postsRoute from "./routes/posts";
 import commentsRoute from "./routes/comments";
+import authRoutes from "./routes/auth_route";
 
 const app = express();
 
@@ -22,6 +23,7 @@ const initApp = () => {
           app.use(bodyParser.json());
           app.use("/posts", postsRoute);
           app.use("/comments", commentsRoute);
+          app.use("/auth", authRoutes);
 
           resolve(app);
         })
