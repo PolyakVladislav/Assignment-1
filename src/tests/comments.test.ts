@@ -1,16 +1,33 @@
-import request from "supertest";
-import initApp from "../server";
-import mongoose from "mongoose";
-import commentsModel from "../models/Comment";
 import { Express } from "express";
-import testComments from "./test_comments.json";
-
-var app: Express;
-
+import mongoose from "mongoose";
+import request from "supertest";
+import commentsModel from "../models/Comment";
+import initApp from "../server";
+//import testComments from "./test_comments.json";
+import userModel  from "../models/users_model";
+var app : Express;
+var token: string;
+var id: string;
 beforeAll(async () => {
   console.log("beforeAll");
   app = await initApp();
   await commentsModel.deleteMany();
+  await userModel.deleteMany();
+  await request(app).post("/auth/register").send({
+    email: "test@user.com",
+    password: "testpassword",
+    
+  });
+  const res = await request(app).post("/auth/login")
+  .send({
+    email: "test@user.com",
+    password: "testpassword",
+    
+  });
+  console.log("hello " + res.body.accessToken);
+  token = res.body.accessToken;
+  id = res.body._id;
+  expect(token).toBeDefined();
 });
 
 afterAll((done) => {
@@ -29,58 +46,81 @@ describe("Comments Tests", () => {
   });
 
   test("Test Create Comment", async () => {
-    const response = await request(app).post("/comments").send(testComments[0]);
+    const response = await request(app).post("/comments")
+    .set({ authorization: "JWT " + token })
+    .send({
+      postId: "673d1324a98644da2edaeac0",
+      content: "Test Content-1",
+      author: "Test username-1",
+    });
     expect(response.statusCode).toBe(201);
-    expect(response.body.content).toBe(testComments[0].content);
-    expect(response.body.postId).toBe(testComments[0].postId);
-    expect(response.body.author).toBe(testComments[0].author);
+    expect(response.body.postId).toBe("673d1324a98644da2edaeac0");
+    expect(response.body.content).toBe("Test Content-1");
+    expect(response.body.author).toBe("Test username-1");
     commentId = response.body._id;
   });
 
-  test("Test get commenty by owner", async () => {
-    const response = await request(app).get("/comments?owner=" + testComments[0].author);
+
+  test("Test Update Comment", async () => {
+    const response = await request(app).put("/comments/"+commentId)
+    .set({ authorization: "JWT " + token })
+    .send({
+      postId: "673d1324a98644da2edaeac0",
+      content: "Test updated Content",
+      username: "Test username-1",
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.body.postId).toBe("673d1324a98644da2edaeac0");
+    expect(response.body.content).toBe("Test updated Content");
+    expect(response.body.author).toBe("Test username-1");
+    commentId = response.body._id;
+  });
+
+  test("Test get comment by username", async () => {
+    const response = await request(app).get("/comments?author=" + "Test username");
     expect(response.statusCode).toBe(200);
     expect(response.body.length).toBe(1);
-    expect(response.body[0].content).toBe(testComments[0].content);
-    expect(response.body[0].postId).toBe(testComments[0].postId);
-    expect(response.body[0].author).toBe(testComments[0].author);
+    expect(response.body[0].postId).toBe("673d1324a98644da2edaeac0");
+    expect(response.body[0].content).toBe("Test updated Content");
+    expect(response.body[0].author).toBe("Test username-1");
   });
 
   test("Comments get post by id", async () => {
-    const response = await request(app).get("/comments/" + commentId);
+    const response = await request(app).get("/comments/"+ commentId);
     expect(response.statusCode).toBe(200);
-    expect(response.body.content).toBe(testComments[0].content);
-    expect(response.body.postId).toBe(testComments[0].postId);
-    expect(response.body.author).toBe(testComments[0].author);
+    expect(response.body.postId).toBe("673d1324a98644da2edaeac0");
+    expect(response.body.content).toBe("Test updated Content");
+    expect(response.body.author).toBe("Test username-1");
   });
 
-  // test("Test Create Post 2", async () => {
-  //   const response = await request(app).post("/posts").send({
-  //     title: "Test Post 2",
-  //     content: "Test Content 2",
-  //     owner: "TestOwner2",
-  //   });
-  //   expect(response.statusCode).toBe(201);
-  // });
 
-  // test("Posts test get all 2", async () => {
-  //   const response = await request(app).get("/posts");
-  //   expect(response.statusCode).toBe(200);
-  //   expect(response.body.length).toBe(2);
-  // });
+  test("Comments get by post id", async () => {
+    const response = await request(app).get("/comments?postId=Test PostId");
+    expect(response.statusCode).toBe(200);
+    expect(response.body.length).toBe(1);
+    expect(response.body[0].postId).toBe("673d1324a98644da2edaeac0");
+    expect(response.body[0].content).toBe("Test updated Content");
+    expect(response.body[0].author).toBe("Test username-1");
+  });
 
-  // test("Test Delete Post", async () => {
-  //   const response = await request(app).delete("/posts/" + postId);
-  //   expect(response.statusCode).toBe(200);
-  //   const response2 = await request(app).get("/posts/" + postId);
-  //   expect(response2.statusCode).toBe(404);
-  // });
+  test("Comments delete by id", async () => {
+    const response = await request(app).delete("/comments/" + commentId)
+    .set({ authorization: "JWT " + token });
+    expect(response.statusCode).toBe(200);
+    expect(response.body.postId).toBe("673d1324a98644da2edaeac0");
+    expect(response.body.content).toBe("Test updated Content");
+    expect(response.body.author).toBe("Test username-1");
+  });
 
-  // test("Test Create Post fail", async () => {
-  //   const response = await request(app).post("/posts").send({
-  //     title: "Test Post 2",
-  //     content: "Test Content 2",
-  //   });
-  //   expect(response.statusCode).toBe(400);
-  // });
+  test("Comments update fail", async () => {
+    const response = await request(app).put("/comments/"+commentId)
+    .set({ authorization: "JWT " + token })
+    .send({
+      postId: "673d1324a98644da2edaeac0",
+      content: "Test Content",
+      username: "Test username",
+    });
+    expect(response.statusCode).not.toBe(200);
+  });
+  
 });

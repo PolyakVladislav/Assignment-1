@@ -1,6 +1,19 @@
 import { Request, Response } from "express";
 import CommentModel from "../models/Comment";
 
+//get all comments
+
+const getAll = async(req: Request, res: Response) =>{
+  try {
+    const comments = await CommentModel.find();
+    res.status(200).json(comments);
+  } catch (err: any) {
+    res
+      .status(500)
+      .json({ message: "Error getting all comments", error: err.message });
+  }
+};
+
 // new comment
 const createComment = async (req: Request, res: Response) => {
   try {
@@ -66,7 +79,7 @@ const getCommentById = async (req: Request, res: Response) => {
 const updateComment = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { content } = req.body;
+    const  content = req.body.content;
 
     if (!id || !content) {
       return res
@@ -109,7 +122,7 @@ const deleteComment = async (req: Request, res: Response) => {
 
     res
       .status(200)
-      .json({ message: "Comment deleted successfully", deletedComment });
+      .json(deletedComment);
   } catch (err: any) {
     res
       .status(500)
@@ -118,6 +131,7 @@ const deleteComment = async (req: Request, res: Response) => {
 };
 
 export default {
+  getAll,
   createComment,
   getCommentsByPostId,
   getCommentById,

@@ -6,10 +6,11 @@ import { authMiddleware } from "../controllers/auth_controller";
 router.post("/", authMiddleware,(req, res) => {
   comments.createComment(req, res);
 });
-router.get("/:postId", (req, res) => {
-  comments.getCommentsByPostId(req, res);
+router.get("/",(req, res) => {
+  comments.getAll(req, res);
 });
-router.get("/:comment/:id", (req, res) => {
+
+router.get("/:id", (req, res) => {
   comments.getCommentById(req, res);
 });
 router.put("/:id", (req, res) => {
