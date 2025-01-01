@@ -6,7 +6,9 @@ import CommentModel from "../models/Comment";
 const getAll = async(req: Request, res: Response) =>{
   try {
     const comments = await CommentModel.find();
-    res.status(200).json(comments);
+    res
+    .status(200)
+    .json(comments);
   } catch (err: any) {
     res
       .status(500)
@@ -20,12 +22,16 @@ const createComment = async (req: Request, res: Response) => {
     const { postId, content, author } = req.body;
 
     if (!postId || !content || !author) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res
+      .status(400)
+      .json({ message: "All fields are required" });
     }
 
     const comment = new CommentModel({ postId, content, author });
     await comment.save();
-    res.status(201).json(comment);
+    res
+    .status(201)
+    .json(comment);
   } catch (err: any) {
     res
       .status(500)
@@ -39,7 +45,9 @@ const getCommentsByPostId = async (req: Request, res: Response) => {
     const { postId } = req.params;
 
     const comments = await CommentModel.find({ postId });
-    res.status(200).json(comments);
+    res
+    .status(200)
+    .json(comments);
   } catch (err: any) {
     res
       .status(500)
@@ -55,10 +63,14 @@ const getCommentById = async (req: Request, res: Response) => {
     const comment = await CommentModel.findById(id);
 
     if (!comment) {
-      return res.status(404).json({ message: "Comment not found" });
+      return res
+      .status(404)
+      .json({ message: "Comment not found" });
     }
 
-    res.status(200).json(comment);
+    res
+    .status(200)
+    .json(comment);
   } catch (err: any) {
     res
       .status(500)
@@ -85,10 +97,14 @@ const updateComment = async (req: Request, res: Response) => {
     );
 
     if (!updatedComment) {
-      return res.status(404).json({ message: "Comment not found" });
+      return res
+      .status(404)
+      .json({ message: "Comment not found" });
     }
 
-    res.status(200).json(updatedComment);
+    res
+    .status(200)
+    .json(updatedComment);
   } catch (err: any) {
     res
       .status(500)
@@ -102,13 +118,17 @@ const deleteComment = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     if (!id) {
-      return res.status(400).json({ message: "Comment ID is required" });
+      return res
+      .status(400)
+      .json({ message: "Comment ID is required" });
     }
 
     const deletedComment = await CommentModel.findByIdAndDelete(id);
 
     if (!deletedComment) {
-      return res.status(404).json({ message: "Comment not found" });
+      return res
+      .status(404)
+      .json({ message: "Comment not found" });
     }
 
     res

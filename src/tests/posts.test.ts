@@ -1,227 +1,172 @@
-// import request from "supertest";
-// import mongoose from "mongoose";
-// import initApp from "../server";
-// import postModel from "../models/Post";
-// import commentModel from "../models/Comment";
-// import { Express } from "express";
-// let app: Express;
+import request from "supertest";
+import initApp from "../server";
+import mongoose from "mongoose";
+import postModel from "../models/Post";
+import { Express } from "express";
+import userModel, { IUser } from "../models/users_model";
 
-// beforeAll(async () => {
-//   console.log("beforeAll");
-//   app = await initApp();
-//   await postModel.deleteMany();
-//   await commentModel.deleteMany();
-// });
 
-// afterAll(async () => {
-//   console.log("afterAll");
-//   await mongoose.connection.close();
-// });
+var app: Express;
 
-// describe("Posts and Comments test suite", () => {
-//   // POSTS TESTS
-//   beforeEach(async () => {
-//     await postModel.deleteMany(); // Clear posts before each test
-//   });
+type User = IUser & { token?: string };
+const testUser: User = {
+  email: "test@user.com",
+  password: "testpassword",
+}
 
-//   test("Get all posts when no posts exist", async () => {
-//     const response = await request(app).get("/posts");
-//     expect(response.statusCode).toBe(200);
-//     expect(response.body).toHaveLength(0);
-//   });
+beforeAll(async () => {
+  console.log("beforeAll");
+  app = await initApp();
+  await postModel.deleteMany();
 
-//   test("Create a new post successfully", async () => {
-//     const response = await request(app).post("/posts").send({
-//       title: "Test Post",
-//       content: "Test Content",
-//       senderId: "TestSenderId",
-//     });
-//     expect(response.statusCode).toBe(201);
-//     expect(response.body.title).toBe("Test Post");
-//     expect(response.body.content).toBe("Test Content");
-//     expect(response.body.senderId).toBe("TestSenderId");
-//   });
+  await userModel.deleteMany();
+  await request(app).post("/auth/register").send(testUser);
+  const res = await request(app).post("/auth/login").send(testUser);
+  testUser.token = res.body.accessToken;
+  testUser._id = res.body._id;
+  expect(testUser.token).toBeDefined();
 
-//   test("Fail to create a post without required fields", async () => {
-//     const response = await request(app)
-//       .post("/posts")
-//       .send({ title: "Missing Fields" });
-//     expect(response.statusCode).toBe(400);
-//     expect(response.body.message).toBe("All fields are required");
-//   });
+});
 
-//   test("Get all posts after creating one", async () => {
-//     await postModel.create({
-//       title: "Test Post",
-//       content: "Test Content",
-//       senderId: "TestSenderId",
-//     });
-//     const response = await request(app).get("/posts");
-//     expect(response.statusCode).toBe(200);
-//     expect(response.body).toHaveLength(1);
-//     expect(response.body[0].title).toBe("Test Post");
-//   });
+afterAll((done) => {
+  console.log("afterAll");
+  mongoose.connection.close();
+  done();
+});
 
-//   test("Get a post by ID successfully", async () => {
-//     const post = await postModel.create({
-//       title: "Test Post",
-//       content: "Test Content",
-//       senderId: "TestSenderId",
-//     });
-//     const response = await request(app).get(`/posts/${post._id}`);
-//     expect(response.statusCode).toBe(200);
-//     expect(response.body.title).toBe("Test Post");
-//     expect(response.body.content).toBe("Test Content");
-//   });
 
-//   test("Fail to get a post with invalid ID", async () => {
-//     const response = await request(app).get("/posts/invalidId");
-//     expect(response.statusCode).toBe(500); // MongoDB throws a CastError
-//   });
+let postId = "";
+describe("Posts Tests", () => {
+    test("Posts test get all", async () => {
+      const response = await request(app).get("/posts");
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toBeDefined();
+      expect(response.body.length).toBe(0);
+    });
+  
+    test("Test Create Post", async () => {
+      const response = await request(app).post("/posts")
+        .set({ authorization: "JWT " + testUser.token })
+        .send({
+          title: "Test Post",
+          content: "Test Content",
+          senderId: "TestOwner",
+        });
+      expect(response.statusCode).toBe(201);
+      expect(response.body.title).toBe("Test Post");
+      expect(response.body.content).toBe("Test Content");
+      postId = response.body._id;
+    });
+  
+    test("Test get post by owner", async () => {
+      const response = await request(app).get("/posts?owner=" + testUser._id);
+      expect(response.statusCode).toBe(200);
+      expect(response.body.length).toBe(1);
+      expect(response.body[0].title).toBe("Test Post");
+      expect(response.body[0].content).toBe("Test Content");
+    });
 
-//   test("Fail to get a post that does not exist", async () => {
-//     const nonExistentId = new mongoose.Types.ObjectId();
-//     const response = await request(app).get(`/posts/${nonExistentId}`);
-//     expect(response.statusCode).toBe(404);
-//     expect(response.body.message).toBe("Post not found");
-//   });
+    test("Test get post by id", async () => {
+      const response = await request(app).get("/posts/" + postId);
+      expect(response.statusCode).toBe(200);
+      expect(response.body.title).toBe("Test Post");
+      expect(response.body.content).toBe("Test Content");
+    });
+  
+    test("Test Create Post 2", async () => {
+      const response = await request(app).post("/posts")
+        .set({ authorization: "JWT " + testUser.token })
+        .send({
+          title: "Test Post 2",
+          content: "Test Content 2",
+          senderId: "TestOwner2",
+        });
+      expect(response.statusCode).toBe(201);
+    });
+  
+    test("Posts test get all 2", async () => {
+      const response = await request(app).get("/posts");
+      expect(response.statusCode).toBe(200);
+      expect(response.body.length).toBe(2);
+    });
+  
+    test("Test Delete Post", async () => {
+      const response = await request(app).delete("/posts/" + postId)
+        .set({ authorization: "JWT " + testUser.token });
+      expect(response.statusCode).toBe(200);
+      const response2 = await request(app).get("/posts/" + postId);
+      expect(response2.statusCode).toBe(404);
+    });
+  
+    test("Test Create Post fail", async () => {
+      const response = await request(app).post("/posts")
+        .set({ authorization: "JWT " + testUser.token })
+        .send({
+          content: "Test Content 2",
+        });
+      expect(response.statusCode).toBe(400);
+    });
 
-//   test("Get posts by sender ID successfully", async () => {
-//     await postModel.create({
-//       title: "Test Post",
-//       content: "Test Content",
-//       senderId: "TestSenderId",
-//     });
-//     const response = await request(app).get("/posts/sender/TestSenderId");
-//     expect(response.statusCode).toBe(200);
-//     expect(response.body).toHaveLength(1);
-//     expect(response.body[0].title).toBe("Test Post");
-//   });
+    test("Test get posts by sender ID with no posts", async () => {
+      const response = await request(app).get("/posts/sender/NonExistentSenderId");
+      expect(response.statusCode).toBe(404);
+      expect(response.body.message).toBe("No posts found for this sender");
+    });    
 
-//   test("Fail to get posts for a non-existent sender ID", async () => {
-//     const response = await request(app).get("/posts/sender/NonExistentSender");
-//     expect(response.statusCode).toBe(404);
-//     expect(response.body.message).toBe("No posts found for this sender");
-//   });
+    test("Test get posts by sender ID with server error", async () => {
+      jest.spyOn(postModel, "find").mockImplementationOnce(() => {
+        throw new Error("Database error");
+      });
+    
+      const response = await request(app).get("/posts/sender/TestOwner");
+      expect(response.statusCode).toBe(500);
+      expect(response.body.message).toBe("Error getting posts by sender ID");
+      expect(response.body.error).toBe("Database error");
+    
+      (postModel.find as jest.Mock).mockRestore();
+    });
+    
+    test("Test update post with missing fields", async () => {
+      const response = await request(app)
+        .put(`/posts/${postId}`)
+        .set({ authorization: "JWT " + testUser.token })
+        .send({
+          title: "Updated Title",
+        });
+      expect(response.statusCode).toBe(400);
+      expect(response.body.message).toBe("Title and content are required");
+    });
 
-//   test("Update a post successfully", async () => {
-//     const post = await postModel.create({
-//       title: "Test Post",
-//       content: "Test Content",
-//       senderId: "TestSenderId",
-//     });
-//     const response = await request(app)
-//       .put(`/posts/${post._id}`)
-//       .send({ title: "Updated Title", content: "Updated Content" });
-//     expect(response.statusCode).toBe(200);
-//     expect(response.body.title).toBe("Updated Title");
-//     expect(response.body.content).toBe("Updated Content");
-//   });
+    test("Test update post with non-existent ID", async () => {
+      const nonExistentId = "64fcb6ae5b19b7e1a1234567"; 
+      const response = await request(app)
+        .put(`/posts/${nonExistentId}`)
+        .set({ authorization: "JWT " + testUser.token })
+        .send({
+          title: "Updated Title",
+          content: "Updated Content",
+        });
+      expect(response.statusCode).toBe(404);
+      expect(response.body.message).toBe("Post not found");
+    });
 
-//   test("Fail to update a post with missing fields", async () => {
-//     const post = await postModel.create({
-//       title: "Test Post",
-//       content: "Test Content",
-//       senderId: "TestSenderId",
-//     });
-//     const response = await request(app).put(`/posts/${post._id}`).send({});
-//     expect(response.statusCode).toBe(400);
-//     expect(response.body.message).toBe("Title and content are required");
-//   });
 
-//   test("Fail to update a non-existent post", async () => {
-//     const nonExistentId = new mongoose.Types.ObjectId();
-//     const response = await request(app)
-//       .put(`/posts/${nonExistentId}`)
-//       .send({ title: "Updated Title", content: "Updated Content" });
-//     expect(response.statusCode).toBe(404);
-//     expect(response.body.message).toBe("Post not found");
-//   });
-
-//   // COMMETNS TESTS
-//   test("Test adding new comment", async () => {
-//     const post = await postModel.create({
-//       title: "Test Post",
-//       content: "Test Content",
-//       senderId: "testSender",
-//     });
-//     const response = await request(app).post(`/comments`).send({
-//       postId: post._id,
-//       content: "Test comment",
-//       author: "testAuthor",
-//     });
-
-//     expect(response.statusCode).toBe(201);
-//     expect(response.body.content).toBe("Test comment");
-//     expect(response.body.author).toBe("testAuthor");
-//     expect(response.body.postId).toBe(post._id.toString());
-//   });
-
-//   test("Fail to create comment with missing fields", async () => {
-//     const response = await request(app)
-//       .post("/comments")
-//       .send({ content: "Missing fields" });
-//     expect(response.statusCode).toBe(400);
-//     expect(response.body.message).toBe("All fields are required");
-//   });
-
-//   test("Successfully get comment by id", async () => {
-//     const comment = await commentModel.findOne();
-//     if (!comment) {
-//       throw new Error("No comment found");
-//     }
-//     const response = await request(app).get(`/comments/comment/${comment._id}`);
-//     expect(response.statusCode).toBe(200);
-//     expect(response.body.content).toBe("Test comment");
-//   });
-
-//   test("Fail to update comment with invalid id", async () => {
-//     const response = await request(app)
-//       .put("/comments/invalidId")
-//       .send({ content: "Updated comment" });
-//     expect(response.statusCode).toBe(500);
-//   });
-
-//   test("Successfully update a comment", async () => {
-//     const comment = await commentModel.findOne();
-//     if (!comment) {
-//       throw new Error("No comment found");
-//     }
-//     const response = await request(app)
-//       .put(`/comments/${comment._id}`)
-//       .send({ content: "Updated comment" });
-//     expect(response.statusCode).toBe(200);
-//     expect(response.body.content).toBe("Updated comment");
-//   });
-
-//   test("Successfully delete a comment", async () => {
-//     const comment = await commentModel.findOne();
-//     if (!comment) {
-//       throw new Error("No comment found");
-//     }
-//     const response = await request(app).delete(`/comments/${comment._id}`);
-//     expect(response.statusCode).toBe(200);
-//     expect(response.body.message).toBe("Comment deleted successfully");
-//   });
-
-//   test("Fail to delete comment with invalid id", async () => {
-//     const response = await request(app).delete("/comments/invalidId");
-//     expect(response.statusCode).toBe(500);
-//   });
-//   test("Fail to create a comment without postId", async () => {
-//     const response = await request(app)
-//       .post("/comments")
-//       .send({ content: "Test Comment", author: "Test Author" });
-//     expect(response.statusCode).toBe(400);
-//     expect(response.body.message).toBe("All fields are required");
-//   });
-
-//   test("Fail to update comment when not found", async () => {
-//     const nonExistentId = new mongoose.Types.ObjectId();
-//     const response = await request(app)
-//       .put(`/comments/${nonExistentId}`)
-//       .send({ content: "Updated Content" });
-//     expect(response.statusCode).toBe(404);
-//     expect(response.body.message).toBe("Comment not found");
-//   });
-// });
+    test("Test update post with server error", async () => {
+      jest.spyOn(postModel, "findByIdAndUpdate").mockImplementationOnce(() => {
+        throw new Error("Database error");
+      });
+    
+      const response = await request(app)
+        .put(`/posts/${postId}`)
+        .set({ authorization: "JWT " + testUser.token })
+        .send({
+          title: "Updated Title",
+          content: "Updated Content",
+        });
+      expect(response.statusCode).toBe(500);
+      expect(response.body.message).toBe("Error updating post");
+      expect(response.body.error).toBe("Database error");
+    
+      (postModel.findByIdAndUpdate as jest.Mock).mockRestore();
+    });
+  });

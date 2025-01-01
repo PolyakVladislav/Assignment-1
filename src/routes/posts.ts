@@ -16,5 +16,9 @@ router.get("/sender/:senderId", (req, res) => {
 router.put("/:id",authMiddleware ,(req, res) => {
   Post.updatePost(req, res);
 });
+router.delete("/:id", authMiddleware, (req, res) => {
+  Post.deletePost(req, res);
+});
+
 
 export default router;
