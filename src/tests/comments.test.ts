@@ -60,7 +60,21 @@ describe("Comments Tests", () => {
     commentId = response.body._id;
   });
 
+  test("Test Create Comment not valid comment", async () => {
+    const response = await request(app).post("/comments")
+    .set({ authorization: "JWT " + token })
+    .send({
+      postId: "673d1324a98644da2edaeac0",
+      content: "Test Content-1",
+      author: "",
+    });
+    expect(response.statusCode).not.toBe(201);
+  });
 
+  test("deleteComment: should return 500 if ID is not valid", async () => {
+    const res = await request(app).delete("/comments/"+"_").set({ authorization: "JWT " + token });
+    expect(res.status).toBe(500);
+  });
   test("Test Update Comment", async () => {
     const response = await request(app).put("/comments/"+commentId)
     .set({ authorization: "JWT " + token })
@@ -103,6 +117,7 @@ describe("Comments Tests", () => {
     expect(response.body[0].author).toBe("Test username-1");
   });
 
+  
   test("Comments delete by id", async () => {
     const response = await request(app).delete("/comments/" + commentId)
     .set({ authorization: "JWT " + token });
@@ -111,6 +126,8 @@ describe("Comments Tests", () => {
     expect(response.body.content).toBe("Test updated Content");
     expect(response.body.author).toBe("Test username-1");
   });
+
+  
 
   test("Comments update fail", async () => {
     const response = await request(app).put("/comments/"+commentId)
@@ -123,4 +140,26 @@ describe("Comments Tests", () => {
     expect(response.statusCode).not.toBe(200);
   });
   
+  test("Comments get by post id fail", async () => {
+    const response = await request(app).get("/comments/"+"fakePostId");
+    expect(response.statusCode).not.toBe(200);
+  });
+  test("Comments get by id fail", async () => {
+    const response = await request(app).get("/comments/"+ "1234");
+    expect(response.statusCode).not.toBe(200);
+  }); 
+  test("Comments delete by id fail", async () => {
+    const response = await request(app).delete("/comments/" + "1234")
+    .set({ authorization: "JWT " + token });
+    expect(response.statusCode).not.toBe(200);
+  });
+  test("Comments postId not found", async () => {
+    const response = await request(app).get("/comments/post/"+"fakePostId");
+    expect(response.statusCode).not.toBe(200);
+  });
+  
+  
+  
+  
+
 });

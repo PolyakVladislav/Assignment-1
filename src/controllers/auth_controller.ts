@@ -148,11 +148,12 @@ const logout = async (req: Request, res: Response) => {
 
 const refresh = async (req: Request, res: Response) => {
     try {
-        const user = await verifyRefreshToken(req.body.refreshToken);
-        if (!user) {
+        if(!req.body.refreshToken){
             res.status(400).send("fail");
             return;
         }
+        const user = await verifyRefreshToken(req.body.refreshToken);
+        
         const tokens = generateToken(user._id);
 
         if (!tokens) {

@@ -188,4 +188,32 @@ describe("Auth Tests", () => {
     });
     expect(response4.statusCode).toBe(201);
   });
+  test("Test verifyRefreshToken user fail", async () => {
+    const response = await request(app).post(baseUrl + "/refresh").send({
+      
+    });
+    expect(response.statusCode).not.toBe(200);
+  });
+  test("should return 500 if TOKEN_SECRET is not set", async () => {
+    delete process.env.TOKEN_SECRET;
+    const response = await request(app).post(baseUrl + "/login").send(testUser);
+    expect(response.statusCode).not.toBe(200);
+  });
+  test("Create post if TOKEN_SECRET is not set", async () => {
+    delete process.env.TOKEN_SECRET;
+    const response = await request(app).post("/posts").set(
+      { authorization: "JWT " + testUser.accessToken }
+    ).send({
+      title: "Test Post",
+      content: "Test Content",
+      senderId: "sdfSd",
+    });
+    expect(response.statusCode).not.toBe(201);
+  });
+  test("Test verifyRefreshToken user fail", async () => {
+    const response = await request(app).post(baseUrl + "/refresh").send({
+      refreshToken: "sdfsd",
+    });
+    expect(response.statusCode).not.toBe(200);
+  });
 });

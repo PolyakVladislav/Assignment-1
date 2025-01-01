@@ -38,12 +38,7 @@ const getCommentsByPostId = async (req: Request, res: Response) => {
   try {
     const { postId } = req.params;
 
-    if (!postId) {
-      return res.status(400).json({ message: "Post ID is required" });
-    }
-
     const comments = await CommentModel.find({ postId });
-
     res.status(200).json(comments);
   } catch (err: any) {
     res
@@ -56,10 +51,6 @@ const getCommentsByPostId = async (req: Request, res: Response) => {
 const getCommentById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ message: "Comment ID is required" });
-    }
 
     const comment = await CommentModel.findById(id);
 

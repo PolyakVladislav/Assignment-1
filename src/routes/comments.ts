@@ -19,7 +19,9 @@ router.put("/:id", (req, res) => {
 router.delete("/:id", authMiddleware,(req, res) => {
   comments.deleteComment(req, res);
 });
-
+router.get("/post/:postId", (req, res) => {
+  comments.getCommentsByPostId(req, res);
+});
 
 
 export default router;
