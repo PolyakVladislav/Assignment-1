@@ -8,6 +8,8 @@ import authRoutes from "./routes/auth_route";
 import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
 const app = express();
+const cors = require('cors');
+app.use(cors());
 app.use(bodyParser.json());
 app.use("/posts", postsRoute);
 app.use("/comments", commentsRoute);
