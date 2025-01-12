@@ -170,3 +170,9 @@ describe("Posts Tests", () => {
       (postModel.findByIdAndUpdate as jest.Mock).mockRestore();
     });
   });
+  //add test 
+  test("Test get posts by sender ID with no posts", async () => {
+   const response = await request(app).get("/posts/sender/NonExistentSenderId");
+   expect(response.statusCode).toBe(404);
+   expect(response.body.message).toBe("No posts found for this sender");
+  });
