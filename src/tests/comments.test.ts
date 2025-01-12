@@ -148,6 +148,15 @@ describe("Comments Tests", () => {
     const response = await request(app).get("/comments/"+ "1234");
     expect(response.statusCode).not.toBe(200);
   }); 
+  test("Comments delete by id fail", async () => {
+    const response = await request(app).delete("/comments/" + "1234")
+    .set({ authorization: "JWT " + token });
+    expect(response.statusCode).not.toBe(200);
+  });
+  test("Comments postId not found", async () => {
+    const response = await request(app).get("/comments/post/"+"fakePostId");
+    expect(response.statusCode).not.toBe(200);
+  });
   
   
   
