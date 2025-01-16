@@ -156,4 +156,8 @@ describe("Comments Tests", () => {
       .set({ authorization: "JWT " + token });
     expect(response.statusCode).not.toBe(200);
   });
+  test("Comments postId not found", async () => {
+    const response = await request(app).get("/comments/post/" + "fakePostId");
+    expect(response.statusCode).not.toBe(200);
+  });
 });
